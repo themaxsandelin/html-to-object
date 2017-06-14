@@ -1,6 +1,6 @@
 {
-  "name": "h2o",
-  "version": "1.0.0",
+  "name": "html-to-object",
+  "version": "1.0.1",
   "description": "A parser for JavaScript that converts native HTML to the equivalent JavaScript element.",
   "main": "index.js",
   "scripts": {
@@ -8,15 +8,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/themaxsandelin/h2o.git"
+    "url": "git+https://github.com/themaxsandelin/html-to-object.git"
   },
   "keywords": [
-    "parser"
+    "parser",
+    "html",
+    "object",
+    "javascript",
+    "js"
   ],
-  "author": "Max Sandelin",
+  "author": "Max Sandelin (https://maxsandelin.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/themaxsandelin/h2o/issues"
+    "url": "https://github.com/themaxsandelin/html-to-object/issues"
   },
-  "homepage": "https://github.com/themaxsandelin/h2o#readme"
+  "homepage": "https://github.com/themaxsandelin/html-to-object#readme"
 }
