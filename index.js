@@ -9,8 +9,7 @@ function h2o (file, options) {
 
   var html = (options.file) ? fs.readFileSync(file, 'utf8'):file;
   var results = extractElement(html);
-  var elements = results.elements;
-  return elements;
+  return results.elements;
 
   function extractElement (html) {
     //  Check if the first line contains any whitespace.
