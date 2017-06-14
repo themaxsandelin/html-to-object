@@ -1,6 +1,6 @@
 'use strict';
 
-var fs = require('fs');
+const fs = require('fs');
 
 function h2o (file, options) {
   options = Object.assign({
@@ -8,16 +8,16 @@ function h2o (file, options) {
     contentWhitespace: true
   }, options);
 
-  var html = (options.file) ? fs.readFileSync(file, 'utf8'):file;
-  var results = extractElement(html);
+  const html = (options.file) ? fs.readFileSync(file, 'utf8'):file;
+  const results = extractElement(html);
   return results.elements;
 
   function extractElement (html) {
     //  Check if the first line contains any whitespace.
-    var firstElementIndex = html.indexOf('<');
+    const firstElementIndex = html.indexOf('<');
     if (firstElementIndex) {
       // It's not the first char, check for whitespace.
-      var firstLine = html.substring(0, firstElementIndex).replace(' ', '');
+      const firstLine = html.substring(0, firstElementIndex).replace(' ', '');
       if (firstLine === '\n') {
         // First line is whitespace, remove it.
         html = html.substring(firstElementIndex, html.length);
@@ -25,7 +25,7 @@ function h2o (file, options) {
     }
 
     // Check if the last line contains any whitespace.
-    var lastLine = html.substring( html.lastIndexOf('>') + 1, html.length);
+    let lastLine = html.substring( html.lastIndexOf('>') + 1, html.length);
     if (lastLine) {
       lastLine = lastLine.replace(' ', '');
       if (lastLine === '\n') {
@@ -33,29 +33,29 @@ function h2o (file, options) {
       }
     }
 
-    var elements = [];
+    const elements = [];
 
-    var copy = html;
+    let copy = html;
     while (/(<([^>]+)>)/ig.test(copy)) {
-      var elementLine = copy.substring(copy.indexOf('<'), copy.indexOf('>') + 1);
-      var elementHasAttributes = (elementLine.indexOf(' ') > 1);
-      var nodeEndChar = (elementHasAttributes) ? ' ':'>';
-      var elementNode = elementLine.substring(elementLine.indexOf('<') + 1, elementLine.indexOf(nodeEndChar));
+      const elementLine = copy.substring(copy.indexOf('<'), copy.indexOf('>') + 1);
+      const elementHasAttributes = (elementLine.indexOf(' ') > 1);
+      const nodeEndChar = (elementHasAttributes) ? ' ':'>';
+      const elementNode = elementLine.substring(elementLine.indexOf('<') + 1, elementLine.indexOf(nodeEndChar));
 
-      var openTag = '<' + elementNode;
-      var closeTag = '</' + elementNode + '>';
-      var closeTags = getAllOccurrences(closeTag, copy);
+      const openTag = '<' + elementNode;
+      const closeTag = '</' + elementNode + '>';
+      const closeTags = getAllOccurrences(closeTag, copy);
 
-      var openTagIndex = copy.indexOf(elementLine) + elementLine.length;
+      const openTagIndex = copy.indexOf(elementLine) + elementLine.length;
 
-      var hasCloseTag = (closeTags.length > 0);
-      var closeTagIndex;
+      const hasCloseTag = (closeTags.length > 0);
+      let closeTagIndex;
       if (hasCloseTag) {
         if (closeTags.length > 1) {
           closeTags.forEach(function (index) {
-            var middleHtml = copy.substring(openTagIndex, index);
-            var startOcc = getAllOccurrences(openTag, middleHtml);
-            var endOcc = getAllOccurrences(closeTag, middleHtml);
+            const middleHtml = copy.substring(openTagIndex, index);
+            const startOcc = getAllOccurrences(openTag, middleHtml);
+            const endOcc = getAllOccurrences(closeTag, middleHtml);
             if (startOcc.length === endOcc.length && !closeTagIndex) closeTagIndex = index;
           });
         } else {
@@ -63,20 +63,20 @@ function h2o (file, options) {
         }
       }
 
-      var elementStart = copy.indexOf(elementLine);
-      var elementEnd = (hasCloseTag) ? (closeTagIndex + closeTag.length) : openTagIndex;
+      const elementStart = copy.indexOf(elementLine);
+      const elementEnd = (hasCloseTag) ? (closeTagIndex + closeTag.length) : openTagIndex;
 
-      var attributes = [];
+      let attributes = [];
       if (elementHasAttributes) {
-        var attributeString = elementLine.substring( elementLine.indexOf(openTag) + openTag.length + 1, elementLine.indexOf('>') );
+        const attributeString = elementLine.substring( elementLine.indexOf(openTag) + openTag.length + 1, elementLine.indexOf('>') );
         attributes = extractAttributes(attributeString);
       }
 
-      var childHtml = copy.substring(openTagIndex, closeTagIndex);
-      var parsed = extractElement(childHtml);
-      var children = parsed.elements;
+      const childHtml = copy.substring(openTagIndex, closeTagIndex);
+      const parsed = extractElement(childHtml);
+      const children = parsed.elements;
 
-      var element = {
+      const element = {
         node: elementNode,
         attributes: attributes,
         children: children,
@@ -94,7 +94,7 @@ function h2o (file, options) {
   }
 
   function trimContentWhitespace (string) {
-    var temp = string;
+    let temp = string;
     // Remove linebreaks
     while (temp.indexOf('\n') > -1) {
       temp = temp.replace('\n', '');
@@ -106,15 +106,15 @@ function h2o (file, options) {
     // If there were just linebreaks and spaces, just remove them outright.
     if (!temp) return '';
 
-    var firstChar = temp.substring(0, 1);
-    var lastChar = temp.substring(temp.length - 1, temp.length);
+    const firstChar = temp.substring(0, 1);
+    const lastChar = temp.substring(temp.length - 1, temp.length);
     return string.substring(string.indexOf(firstChar), string.indexOf(lastChar) + 1);
   }
 
   function extractAttributes (string) {
-    var attributes = [];
-    var re = /(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g;
-    var parts;
+    const attributes = [];
+    const re = /(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g;
+    const parts;
     do {
       parts = re.exec(string);
       if (parts) {
@@ -128,8 +128,8 @@ function h2o (file, options) {
   }
 
   function getAllOccurrences (part, string) {
-    var occurrences = [];
-    var temp = string;
+    const occurrences = [];
+    let temp = string;
     while (temp.indexOf(part) > -1) {
       occurrences.push(temp.indexOf(part) + (string.length - temp.length));
       temp = temp.substring(temp.indexOf(part) + part.length, temp.length);
