@@ -2,13 +2,16 @@
   "name": "html-to-object",
   "version": "1.0.1",
   "description": "A parser for JavaScript that converts native HTML to the equivalent JavaScript element.",
+  "license": "MIT",
+  "repository": "themaxsandelin/html-to-object",
+  "author": {
+    "name": "Max Sandelin",
+    "email": "hello@maxsandelin.com",
+    "url": "https://maxsandelin.com"
+  },
   "main": "index.js",
   "scripts": {
     "test": "node test/test.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/themaxsandelin/html-to-object.git"
   },
   "keywords": [
     "parser",
@@ -17,8 +20,6 @@
     "javascript",
     "js"
   ],
-  "author": "Max Sandelin (https://maxsandelin.com)",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/themaxsandelin/html-to-object/issues"
   },
