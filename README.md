@@ -24,12 +24,12 @@ const html = fs.readFileSync('path/to/file.html', 'utf8');
 const results = h2o(html, { file: false });
 ```
 
-#### contentWhitespace (default: true)
+#### trimContentWhitespace (default: true)
 Will trim any leading or trailing whitespace in elements innerText.
 ```javascript
 const h2o = require('html-to-object');
 
-const results = h2o(html, { contentWhitespace: false });
+const results = h2o(html, { trimContentWhitespace: false });
 ```
 
 

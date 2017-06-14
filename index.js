@@ -5,7 +5,7 @@ const fs = require('fs');
 function h2o (file, options) {
   options = Object.assign({
     file: true,
-    contentWhitespace: true
+    trimtContentWhitespace: true
   }, options);
 
   const html = (options.file) ? fs.readFileSync(file, 'utf8'):file;
@@ -80,7 +80,7 @@ function h2o (file, options) {
         node: elementNode,
         attributes: attributes,
         children: children,
-        content: (!options.contentWhitespace) ? trimContentWhitespace(parsed.leftover):parsed.leftover
+        content: (!options.trimContentWhitespace) ? trimContentWhitespace(parsed.leftover):parsed.leftover
       }
 
       elements.push(element);
