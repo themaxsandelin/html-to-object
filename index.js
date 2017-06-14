@@ -3,9 +3,10 @@
 var fs = require('fs');
 
 function h2o (file, options) {
-  options = options || {};
-  options.contentWhitespace = options.contentWhitespace || true;
-  options.file = options.file || true;
+  options = Object.assign({
+    file: true,
+    contentWhitespace: true
+  }, options);
 
   var html = (options.file) ? fs.readFileSync(file, 'utf8'):file;
   var results = extractElement(html);
