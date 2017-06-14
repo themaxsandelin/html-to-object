@@ -4,11 +4,11 @@ const fs = require('fs');
 
 function h2o (file, options) {
   options = Object.assign({
-    file: true,
+    targetIsFile: true,
     trimtContentWhitespace: true
   }, options);
 
-  const html = (options.file) ? fs.readFileSync(file, 'utf8'):file;
+  const html = (options.targetIsFile) ? fs.readFileSync(file, 'utf8'):file;
   const results = extractElement(html);
   return results.elements;
 
