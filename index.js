@@ -4,7 +4,10 @@ var fs = require('fs');
 
 function h2o (file, options) {
   options = options || {};
-  var html = fs.readFileSync(file, 'utf8');
+  options.contentWhitespace = (options.contentWhitespace !== undefined) ? options.contentWhitespace:true;
+  options.file = (options.file !== undefined) ? options.file:true;
+
+  var html = (options.file) ? fs.readFileSync(file, 'utf8'):file;
   var results = extractElement(html);
   var elements = results.elements;
   return elements;
@@ -110,14 +113,17 @@ function h2o (file, options) {
 
   function extractAttributes (string) {
     var attributes = [];
-    var strings = string.split(' ');
-    strings.forEach(function (attr) {
-      var parts = attr.split('=');
-      attributes.push({
-        name: parts[0],
-        value: parts[1].replace(/"/g, '').replace(/'/g, '')
-      })
-    });
+    var re = /(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g;
+    var parts;
+    do {
+      parts = re.exec(string);
+      if (parts) {
+        attributes.push({
+          name: parts[1],
+          value: parts[2]
+        });
+      }
+    } while (parts);
     return attributes;
   }
 
