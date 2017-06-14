@@ -114,7 +114,7 @@ function h2o (file, options) {
   function extractAttributes (string) {
     const attributes = [];
     const re = /(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g;
-    const parts;
+    let parts;
     do {
       parts = re.exec(string);
       if (parts) {
