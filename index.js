@@ -3,7 +3,7 @@
 var fs = require('fs');
 
 function h2o (file, options) {
-  options = Object.assign({
+  Object.assign({
     file: true,
     contentWhitespace: true
   }, options);
