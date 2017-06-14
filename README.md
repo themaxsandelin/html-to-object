@@ -9,18 +9,14 @@ This is a HTML to JavaScript parser to enable "component" building in native cod
 // Simplest usage.
 const h2o = require('html-to-object');
 
-const results = h2o('path/to/file.html');
+const results = h2o('path/to/file.html', [options]);
 ```
 
-## API
+## Options
 
-### h2o(target, [options])
-#### options
-See examples below.
-
-## file (default: true)
+#### file (default: true)
+In case of preloaded .html file content
 ```javascript
-// In case of preloaded .html file content
 const fs = require('fs');
 const h2o = require('html-to-object');
 
@@ -28,9 +24,9 @@ const html = fs.readFileSync('path/to/file.html', 'utf8');
 const results = h2o(html, { file: false });
 ```
 
-## contentWhitespace (default: true)
+#### contentWhitespace (default: true)
+Will trim any leading or trailing whitespace in elements innerText.
 ```javascript
-// Will trim any leading or trailing whitespace in elements innerText.
 const h2o = require('html-to-object');
 
 const results = h2o(html, { contentWhitespace: false });
