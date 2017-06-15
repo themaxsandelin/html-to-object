@@ -6,7 +6,6 @@ This is a HTML to JavaScript parser to enable "component" building in native cod
 
 ## Usage
 ```javascript
-// Simplest usage.
 const h2o = require('html-to-object');
 
 const results = h2o('path/to/file.html', [options]);
