@@ -1,5 +1,5 @@
 # html-to-object
-This is a HTML to JavaScript parser to enable "component" building in native code.
+A lightweight, dependency free parser for JavaScript that converts your native HTML code into an Array of JavaScript Objects.
 
 ## Install
 `$ npm install --save html-to-object`
