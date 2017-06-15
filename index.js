@@ -5,6 +5,7 @@ const fs = require('fs');
 function h2o (file, options) {
   options = Object.assign({
     targetIsFile: true,
+    removeEmptyContent: false,
     trimContentWhitespace: false
   }, options);
 
@@ -75,15 +76,14 @@ function h2o (file, options) {
       const childHtml = copy.substring(openTagIndex, closeTagIndex);
       const parsed = extractElement(childHtml);
       const children = parsed.elements;
+      const content = (options.trimContentWhitespace || options.removeEmptyContent) ? fixContentWhitespace(parsed.leftover, options.trimContentWhitespace):parsed.leftover;
 
-      const element = {
+      elements.push({
         node: elementNode,
         attributes: attributes,
         children: children,
-        content: (options.trimContentWhitespace) ? trimContentWhitespace(parsed.leftover):parsed.leftover
-      }
-
-      elements.push(element);
+        content: content
+      });
       copy = copy.substring(0, elementStart) + copy.substring(elementEnd, copy.length);
     }
 
@@ -93,7 +93,7 @@ function h2o (file, options) {
     };
   }
 
-  function trimContentWhitespace (string) {
+  function fixContentWhitespace (string, trim) {
     let temp = string;
     // Remove linebreaks
     while (temp.indexOf('\n') > -1) {
@@ -106,9 +106,13 @@ function h2o (file, options) {
     // If there were just linebreaks and spaces, just remove them outright.
     if (!temp) return '';
 
-    const firstChar = temp.substring(0, 1);
-    const lastChar = temp.substring(temp.length - 1, temp.length);
-    return string.substring(string.indexOf(firstChar), string.indexOf(lastChar) + 1);
+    if (trim) {
+      const firstChar = temp.substring(0, 1);
+      const lastChar = temp.substring(temp.length - 1, temp.length);
+      return string.substring(string.indexOf(firstChar), string.indexOf(lastChar) + 1);
+    }
+
+    return string;
   }
 
   function extractAttributes (string) {
