@@ -1,144 +1,270 @@
-'use strict';
-
 const fs = require('fs');
 
-function h2o (file, options) {
+function h2o (target, options) {
   options = Object.assign({
-    targetIsFile: true,
-    removeEmptyContent: false,
-    trimContentWhitespace: false
+    targetIsFile: true
   }, options);
 
-  const html = (options.targetIsFile) ? fs.readFileSync(file, 'utf8'):file;
-  const results = extractElement(html);
-  return results.elements;
+  const voids = [
+    'area',
+    'base',
+    'basefont',
+    'bgsound',
+    'br',
+    'col',
+    'command',
+    'embed',
+    'frame',
+    'hr',
+    'image',
+    'img',
+    'input',
+    'isindex',
+    'keygen',
+    'link',
+    'menuitem',
+    'meta',
+    'nextid',
+    'param',
+    'source',
+    'track',
+    'wbr'
+  ];
+  const openTags = [];
+  const closeTags = [];
 
-  function extractElement (html) {
-    //  Check if the first line contains any whitespace.
-    const firstElementIndex = html.indexOf('<');
-    if (firstElementIndex) {
-      // It's not the first char, check for whitespace.
-      const firstLine = html.substring(0, firstElementIndex).replace(' ', '');
-      if (firstLine === '\n') {
-        // First line is whitespace, remove it.
-        html = html.substring(firstElementIndex, html.length);
-      }
+  const html = (options.targetIsFile) ? fs.readFileSync('./test/test.html', 'utf8'):target;
+
+  // Break out all HTML tags.
+  let temp = html;
+  while ((temp.indexOf('<') > -1) && (temp.indexOf('>') > -1)) {
+    const diff = html.length - temp.length;
+
+    const start = temp.indexOf('<');
+    const end = temp.indexOf('>') + 1;
+    const nodeString = temp.substring(start, end);
+    const isCloseTag = (nodeString.indexOf('/') === 1);
+
+    const obj = {
+      startIndex: start + diff,
+      endIndex: end + diff,
+      nodeString: nodeString
     }
 
-    // Check if the last line contains any whitespace.
-    let lastLine = html.substring( html.lastIndexOf('>') + 1, html.length);
-    if (lastLine) {
-      lastLine = lastLine.replace(' ', '');
-      if (lastLine === '\n') {
-        html = html.substring(0, html.lastIndexOf('>') + 1);
-      }
+    if (isCloseTag) {
+      closeTags.push(obj);
+    } else {
+      openTags.push(obj);
     }
-
-    const elements = [];
-
-    let copy = html;
-    while (/(<([^>]+)>)/ig.test(copy)) {
-      const elementLine = copy.substring(copy.indexOf('<'), copy.indexOf('>') + 1);
-      const elementHasAttributes = (elementLine.indexOf(' ') > 1);
-      const nodeEndChar = (elementHasAttributes) ? ' ':'>';
-      const elementNode = elementLine.substring(elementLine.indexOf('<') + 1, elementLine.indexOf(nodeEndChar));
-
-      const openTag = '<' + elementNode;
-      const closeTag = '</' + elementNode + '>';
-      const closeTags = getAllOccurrences(closeTag, copy);
-
-      const openTagIndex = copy.indexOf(elementLine) + elementLine.length;
-
-      const hasCloseTag = (closeTags.length > 0);
-      let closeTagIndex;
-      if (hasCloseTag) {
-        if (closeTags.length > 1) {
-          closeTags.forEach(function (index) {
-            const middleHtml = copy.substring(openTagIndex, index);
-            const startOcc = getAllOccurrences(openTag, middleHtml);
-            const endOcc = getAllOccurrences(closeTag, middleHtml);
-            if (startOcc.length === endOcc.length && !closeTagIndex) closeTagIndex = index;
-          });
-        } else {
-          closeTagIndex = closeTags[0];
-        }
-      }
-
-      const elementStart = copy.indexOf(elementLine);
-      const elementEnd = (hasCloseTag) ? (closeTagIndex + closeTag.length) : openTagIndex;
-
-      let attributes = [];
-      if (elementHasAttributes) {
-        const attributeString = elementLine.substring( elementLine.indexOf(openTag) + openTag.length + 1, elementLine.indexOf('>') );
-        attributes = extractAttributes(attributeString);
-      }
-
-      const childHtml = copy.substring(openTagIndex, closeTagIndex);
-      const parsed = extractElement(childHtml);
-      const children = parsed.elements;
-      const content = (options.trimContentWhitespace || options.removeEmptyContent) ? fixContentWhitespace(parsed.leftover, options.trimContentWhitespace):parsed.leftover;
-
-      elements.push({
-        node: elementNode,
-        attributes: attributes,
-        children: children,
-        content: content
-      });
-      copy = copy.substring(0, elementStart) + copy.substring(elementEnd, copy.length);
-    }
-
-    return {
-      elements: elements,
-      leftover: copy
-    };
+    temp = temp.substring(end, temp.length);
   }
 
-  function fixContentWhitespace (string, trim) {
-    let temp = string;
-    // Remove linebreaks
-    while (temp.indexOf('\n') > -1) {
-      temp = temp.replace('\n', '');
+  let elements = [];
+  openTags.forEach((open, i) => {
+    const node = parseNodeString(open.nodeString);
+    const isVoid = (voids.indexOf(node.nodeName) > -1);
+
+    let close;
+    if (!isVoid) {
+      close = findCloseTag(node.nodeName, open.endIndex);
     }
-    // Remove spaces
+
+    elements.push({
+      type: 'element',
+      node: node.nodeName,
+      attributes: node.attributes,
+      void: isVoid,
+      children: [],
+      parentIndex: -1,
+      index: {
+        elementStart: open.startIndex,
+        elementEnd: (isVoid) ? open.endIndex:close.endIndex,
+        contentStart: open.endIndex,
+        contentEnd: (isVoid) ? open.endIndex:close.startIndex
+      }
+    });
+  });
+
+  elements.forEach((main, x) => {
+    elements[x].id = x;
+    elements.forEach((sub, y) => {
+      if (sub.index.elementStart > main.index.contentStart && sub.index.elementStart < main.index.contentEnd) {
+        elements[y].parentIndex = x;
+      }
+    });
+  });
+
+  const purge = [];
+  elements.forEach((element, i) => {
+    if (element.parentIndex > -1) {
+      elements[element.parentIndex].children.push(element);
+      purge.push(i);
+    }
+  });
+
+  purge.forEach((x) => {
+    elements.forEach((element, y) => {
+      if (element.id === x) {
+        elements.splice(y, 1);
+      }
+    });
+  });
+
+  elements.forEach((element) => {
+    if (!element.void) parseElementContent(element, html);
+    if (element.children.length) {
+      orderElementChildren(element);
+    }
+    cleanElement(element);
+  });
+
+  return elements;
+
+  function cleanElement (element) {
+    delete element.parentIndex;
+    delete element.index;
+    delete element.id;
+    delete element.void;
+    if (element.children) {
+      element.children.forEach((child) => {
+        cleanElement(child);
+      });
+    }
+  }
+
+  function orderElementChildren (element) {
+    element.children.sort((a, b) => {
+      if (a.index.elementStart > b.index.elementStart) return 1;
+      if (a.index.elementStart < b.index.elementStart) return -1;
+      return 0;
+    });
+    element.children.forEach((child) => {
+      if (child.children) orderElementChildren(child);
+    });
+  }
+
+  function parseElementContent (element, html) {
+    let content = html.substring(element.index.contentStart, element.index.contentEnd);
+
+    const lines = [];
+    let diff = element.index.contentStart;
+    if (element.children.length) {
+      element.children.forEach((child, i) => {
+        parseElementContent(child, html);
+        lines.push({
+          text: content.substring(0, (child.index.elementStart - diff)),
+          index: diff
+        });
+        content = content.substring((child.index.elementEnd - diff), content.length);
+        diff += (child.index.elementStart - diff);
+        diff += (child.index.elementEnd - child.index.elementStart);
+      });
+    }
+    lines.push({
+      text: content,
+      index: diff
+    });
+
+    content = html.substring(element.index.contentStart, element.index.contentEnd);
+    lines.forEach((line) => {
+      line.text = trimWhitespace(line.text);
+      if (line.text) {
+        element.children.push({
+          type: 'text',
+          text: line.text,
+          index: {
+            elementStart: line.index
+          }
+        });
+      }
+    });
+  }
+
+  function trimWhitespace (string) {
+    // Remove linebreaks
+    while (string.indexOf('\n') > -1) {
+      string = string.replace('\n', '');
+    }
+    // Remove tabs
+    while (string.indexOf('\t') > -1) {
+      string = string.replace('\t', '');
+    }
+    // Find first and last char and remove leading and trailing whitespace.
+    let temp = string;
     while (temp.indexOf(' ') > -1) {
       temp = temp.replace(' ', '');
     }
-    // If there were just linebreaks and spaces, just remove them outright.
     if (!temp) return '';
 
-    if (trim) {
-      const firstChar = temp.substring(0, 1);
-      const lastChar = temp.substring(temp.length - 1, temp.length);
-      return string.substring(string.indexOf(firstChar), string.indexOf(lastChar) + 1);
-    }
+    const firstChar = temp.substring(0, 1);
+    const lastChar = temp.substring(temp.length - 1, temp.length);
 
-    return string;
+    return string.substring(string.indexOf(firstChar), string.lastIndexOf(lastChar) + 1);
   }
 
-  function extractAttributes (string) {
-    const attributes = [];
-    const re = /(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g;
-    let parts;
-    do {
-      parts = re.exec(string);
-      if (parts) {
-        attributes.push({
-          name: parts[1],
-          value: parts[2]
+  function findCloseTag (nodeName, openIndex) {
+    const otaga = '<' + nodeName + ' ';
+    const otagb = '<' + nodeName + '>';
+    const ctag = '</' + nodeName + '>';
+    const closes = [];
+
+    let closeTag;
+    closeTags.forEach((close, i) => {
+      if (!closeTag && close.nodeString === ctag && close.startIndex >= openIndex) {
+        const opens = [];
+        openTags.forEach((open) => {
+          if (open.startIndex > openIndex && ((open.nodeString.indexOf(otaga) > -1) || (open.nodeString.indexOf(otagb) > -1)) && open.startIndex < close.startIndex) {
+            opens.push(open);
+          }
         });
+        if (closes.length === opens.length) closeTag = close;
+        closes.push(close);
       }
-    } while (parts);
-    return attributes;
+    });
+    return closeTag;
   }
 
-  function getAllOccurrences (part, string) {
-    const occurrences = [];
-    let temp = string;
-    while (temp.indexOf(part) > -1) {
-      occurrences.push(temp.indexOf(part) + (string.length - temp.length));
-      temp = temp.substring(temp.indexOf(part) + part.length, temp.length);
+  function parseNodeString (string) {
+    const hasAttributes = (string.indexOf(' ') > -1);
+    const nodeName = string.substring(1, ((hasAttributes) ? string.indexOf(' '):string.length - 1));
+
+    string = string.replace('<', '').replace('>', '').replace(nodeName, '');
+    if (string.indexOf(' ') === 0) string = string.substring(1, string.length);
+    if (string.lastIndexOf(' ') === (string.length - 1)) string = string.substring(0, string.length - 1);
+
+    const attributes = [];
+    if (hasAttributes) {
+      const re = /(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g;
+      let parts;
+      do {
+        parts = re.exec(string);
+        if (parts) {
+          attributes.push({
+            name: parts[1],
+            value: parts[2]
+          });
+        }
+      } while (parts);
+      attributes.forEach((attr) => {
+        const val = attr.name + '="' + attr.value + '"';
+        string = string.replace(val, '');
+      });
+
+      const potentialAttributes = string.split(' ');
+      potentialAttributes.forEach((pa) => {
+        if (pa) {
+          attributes.push({
+            name: pa,
+            value: true
+          });
+        }
+      });
     }
-    return occurrences;
+
+    return {
+      nodeName: nodeName,
+      attributes: attributes
+    };
   }
 }
 
