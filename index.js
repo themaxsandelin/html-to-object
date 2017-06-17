@@ -2,7 +2,8 @@ const fs = require('fs');
 
 function h2o (target, options) {
   options = Object.assign({
-    targetIsFile: true
+    targetIsFile: true,
+    attributesAsObject: false
   }, options);
 
   const voids = [
@@ -232,31 +233,47 @@ function h2o (target, options) {
     if (string.indexOf(' ') === 0) string = string.substring(1, string.length);
     if (string.lastIndexOf(' ') === (string.length - 1)) string = string.substring(0, string.length - 1);
 
-    const attributes = [];
+    const attributes = (options.attributesAsObject) ? {}:[];
     if (hasAttributes) {
       const re = /(\S+)=["']?((?:.(?!["']?\s+(?:\S+)=|[>"']))+.)["']?/g;
       let parts;
       do {
         parts = re.exec(string);
         if (parts) {
-          attributes.push({
-            name: parts[1],
-            value: parts[2]
-          });
+          if (options.attributesAsObject) {
+            attributes[parts[1]] = parts[2];
+          } else {
+            attributes.push({
+              name: parts[1],
+              value: parts[2]
+            });
+          }
         }
       } while (parts);
-      attributes.forEach((attr) => {
-        const val = attr.name + '="' + attr.value + '"';
-        string = string.replace(val, '');
-      });
+
+      if (options.attributesAsObject) {
+        Object.keys(attributes).forEach((key) => {
+          const val = key + '="' + attributes[key] + '"';
+          string = string.replace(val, '');
+        });
+      } else {
+        attributes.forEach((attr) => {
+          const val = attr.name + '="' + attr.value + '"';
+          string = string.replace(val, '');
+        });
+      }
 
       const potentialAttributes = string.split(' ');
       potentialAttributes.forEach((pa) => {
         if (pa) {
-          attributes.push({
-            name: pa,
-            value: true
-          });
+          if (options.attributesAsObject) {
+            attributes[pa] = true;
+          } else {
+            attributes.push({
+              name: pa,
+              value: true
+            });
+          }
         }
       });
     }
