@@ -23,6 +23,16 @@ const html = fs.readFileSync('path/to/file.html', 'utf8');
 const results = h2o(html, { targetIsFile: false });
 ```
 
+#### attributesAsObject (default: false)
+Will define the attributes property of each element as an Object instead of an Array.
+```javascript
+const fs = require('fs');
+const h2o = require('html-to-object');
+
+const html = fs.readFileSync('path/to/file.html', 'utf8');
+const results = h2o(html, { attributesAsObject: true });
+```
+
 
 ## License
 [MIT](LICENSE) © [Max Sandelin](https://github.com/themaxsandelin)
