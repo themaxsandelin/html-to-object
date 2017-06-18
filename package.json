@@ -14,6 +14,8 @@
     "test": "node test/test.js"
   },
   "keywords": [
+    "html parser",
+    "javascript parser",
     "parser",
     "html",
     "object",
