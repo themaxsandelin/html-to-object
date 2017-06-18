@@ -34,7 +34,7 @@ function h2o (target, options) {
   const openTags = [];
   const closeTags = [];
 
-  const html = (options.targetIsFile) ? fs.readFileSync('./test/test.html', 'utf8'):target;
+  const html = (options.targetIsFile) ? fs.readFileSync(target, 'utf8'):target;
 
   // Break out all HTML tags.
   let temp = html;
