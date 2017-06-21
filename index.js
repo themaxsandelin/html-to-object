@@ -89,7 +89,7 @@ function h2o (target, options) {
   elements.forEach((main, x) => {
     elements[x].id = x;
     elements.forEach((sub, y) => {
-      if (sub.index.elementStart > main.index.contentStart && sub.index.elementStart < main.index.contentEnd) {
+      if (sub.index.elementStart >= main.index.contentStart && sub.index.elementStart < main.index.contentEnd) {
         elements[y].parentIndex = x;
       }
     });
