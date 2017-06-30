@@ -294,23 +294,14 @@ function h2o (target, options) {
   }
 
   function constructElements (elements, parent) {
-    let el;
-    if (elements.length === 1) {
+    const build = [];
+    elements.forEach((element) => {
+      let el = buildElement(elements[0], parent);
       if (!parent) {
-        el = buildElement(elements[0]);
-      } else {
-        buildElement(elements[0], parent);
+        build.push(el);
       }
-    } else {
-      elements.forEach((elementObj) => {
-        if (!parent) {
-          el = buildElement(elementObj);
-        } else {
-          buildElement(elementObj, parent);
-        }
-      });
-    }
-    if (!parent) return el;
+    });
+    return build;
 
     function buildElement (obj, parent) {
       let el;
