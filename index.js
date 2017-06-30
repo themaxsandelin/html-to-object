@@ -1,10 +1,19 @@
 const fs = require('fs');
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
+
 
 function h2o (target, options) {
   options = Object.assign({
+    build: false,
     targetIsFile: true,
     attributesAsObject: false
   }, options);
+
+  let document;
+  if (options.build) {
+    document = new JSDOM().window.document;
+  }
 
   const voids = [
     'area',
@@ -119,7 +128,7 @@ function h2o (target, options) {
     cleanElement(element);
   });
 
-  return elements;
+  return (options.build) ? constructElements(elements):elements;
 
   function cleanElement (element) {
     delete element.parentIndex;
@@ -282,6 +291,47 @@ function h2o (target, options) {
       nodeName: nodeName,
       attributes: attributes
     };
+  }
+
+  function constructElements (elements, parent) {
+    let el;
+    if (elements.length === 1) {
+      if (!parent) {
+        el = buildElement(elements[0]);
+      } else {
+        buildElement(elements[0], parent);
+      }
+    } else {
+      elements.forEach((elementObj) => {
+        if (!parent) {
+          el = buildElement(elementObj);
+        } else {
+          buildElement(elementObj, parent);
+        }
+      });
+    }
+    if (!parent) return el;
+
+    function buildElement (obj, parent) {
+      let el;
+      if (obj.type === 'text') {
+        el = document.createTextNode(obj.text);
+      } else {
+        el = document.createElement(obj.node);
+        if (obj.attributes && obj.attributes.length) {
+          obj.attributes.forEach((attribute) => {
+            el.setAttribute(attribute.name, attribute.value);
+          });
+        }
+        if (obj.children && obj.children.length) {
+          obj.children.forEach((child) => {
+            buildElement(child, el);
+          });
+        }
+      }
+      if (!parent) return el;
+      parent.appendChild(el);
+    }
   }
 }
 
