@@ -95,6 +95,7 @@ function h2o (target, options) {
       node: node.nodeName,
       attributes: node.attributes,
       void: isVoid,
+      svg: node.svg,
       children: [],
       parentIndex: -1,
       index: {
@@ -118,6 +119,7 @@ function h2o (target, options) {
   const purge = [];
   elements.forEach((element, i) => {
     if (element.parentIndex > -1) {
+      if (elements[element.parentIndex].svg) element.svg = true;
       elements[element.parentIndex].children.push(element);
       purge.push(i);
     }
@@ -249,6 +251,7 @@ function h2o (target, options) {
     const hasAttributes = (string.indexOf(' ') > -1);
     const nodeName = string.substring(1, ((hasAttributes) ? string.indexOf(' '):string.length - 1));
     const close = (string.indexOf('/>') > -1) ? '/>':'>';
+    const svg = (nodeName === 'svg');
 
     string = string.replace('<', '').replace(close, '').replace(nodeName, '');
     if (string.indexOf(' ') === 0) string = string.substring(1, string.length);
@@ -301,7 +304,8 @@ function h2o (target, options) {
 
     return {
       nodeName: nodeName,
-      attributes: attributes
+      attributes: attributes,
+      svg: svg
     };
   }
 
