@@ -38,7 +38,8 @@ function h2o (target, options) {
     'param',
     'source',
     'track',
-    'wbr'
+    'wbr',
+    'path'
   ];
   const openTags = [];
   const closeTags = [];
