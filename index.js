@@ -324,10 +324,20 @@ function h2o (target, options) {
       if (obj.type === 'text') {
         el = document.createTextNode(obj.text);
       } else {
-        el = document.createElement(obj.node);
+        if (obj.svg) {
+          el = document.createElementNS('http://www.w3.org/2000/svg', obj.node);
+        } else {
+          el = document.createElement(obj.node);
+        }
         if (obj.attributes && obj.attributes.length) {
           obj.attributes.forEach((attribute) => {
-            el.setAttribute(attribute.name, attribute.value);
+            if (obj.svg) {
+  						if (attribute.name !== 'xml:space') {
+  							el.setAttributeNS(null, attribute.name, attribute.value);
+  						}
+            } else {
+              el.setAttribute(attribute.name, attribute.value);
+            }
           });
         }
         if (obj.children && obj.children.length) {
