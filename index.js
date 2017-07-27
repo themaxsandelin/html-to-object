@@ -44,17 +44,27 @@ function h2o (target, options) {
   const openTags = [];
   const closeTags = [];
 
-  const html = (options.targetIsFile) ? fs.readFileSync(target, 'utf8'):target;
+  let html = (options.targetIsFile) ? fs.readFileSync(target, 'utf8'):target;
+  // Strip all comments first.
+  while (html.indexOf('<!--') > -1) {
+    const start = html.indexOf('<!--');
+    const end = html.indexOf('-->') + 3;
+    html = html.substring(0, start) + html.substring(end, html.length);
+  }
 
-  // Break out all HTML tags.
   let temp = html;
+  // Break out all HTML tags.
   while ((temp.indexOf('<') > -1) && (temp.indexOf('>') > -1)) {
     const diff = html.length - temp.length;
 
     const start = temp.indexOf('<');
-    const end = temp.indexOf('>') + 1;
-    const nodeString = temp.substring(start, end);
-    const isCloseTag = (nodeString.indexOf('/') === 1);
+    let end = temp.indexOf('>') + 1;
+    let nodeString = temp.substring(start, end);
+    let isCloseTag = (nodeString.indexOf('/') === 1);
+    if (temp.indexOf('/>') > -1 && temp.indexOf('/>') === (end - 2)) {
+      end = temp.indexOf('/>') + 2;
+      isCloseTag = false;
+    }
 
     const obj = {
       startIndex: start + diff,
@@ -238,8 +248,9 @@ function h2o (target, options) {
   function parseNodeString (string) {
     const hasAttributes = (string.indexOf(' ') > -1);
     const nodeName = string.substring(1, ((hasAttributes) ? string.indexOf(' '):string.length - 1));
+    const close = (string.indexOf('/>') > -1) ? '/>':'>';
 
-    string = string.replace('<', '').replace('>', '').replace(nodeName, '');
+    string = string.replace('<', '').replace(close, '').replace(nodeName, '');
     if (string.indexOf(' ') === 0) string = string.substring(1, string.length);
     if (string.lastIndexOf(' ') === (string.length - 1)) string = string.substring(0, string.length - 1);
 
