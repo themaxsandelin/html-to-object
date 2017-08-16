@@ -249,7 +249,7 @@ function h2o (target, options) {
 
   function parseNodeString (string) {
     const hasAttributes = (string.indexOf(' ') > -1);
-    const nodeName = string.substring(1, ((hasAttributes) ? string.indexOf(' '):string.length - 1));
+    const nodeName = string.substring(1, ((hasAttributes) ? string.indexOf(' '):string.length - 1)).toLowerCase();
     const close = (string.indexOf('/>') > -1) ? '/>':'>';
     const svg = (nodeName === 'svg');
 
